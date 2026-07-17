@@ -1,0 +1,6 @@
+category,average_score,num_tests
+bias,1.6,10
+hallucination,1.5555555555555556,9
+prompt_injection,1.5,14
+uncertainty_refusal,2.0,7
+unsafe_advice,1.875,8

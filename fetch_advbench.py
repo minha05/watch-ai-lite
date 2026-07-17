@@ -7,7 +7,7 @@ df = dataset["train"].to_pandas()
 # Only actual injection attempts
 injections = df[df["label"] == 1]
 
-# Simple filter: skip anything with obvious German characters/words
+# Simple filter skips anything with obvious German characters/words
 def looks_english(text):
     german_markers = ["ß", "ü", "ö", "ä", "der ", "die ", "und ", "ich ", "für "]
     return not any(marker in text.lower() for marker in german_markers)

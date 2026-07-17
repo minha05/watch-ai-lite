@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import time
+import sys
 
 load_dotenv()
 client = OpenAI(
@@ -10,7 +11,11 @@ client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
 )
 
-results_path = "data/results_openrouter.csv"
+# Pass the model name as a command-line argument
+model_name = sys.argv[1]  # e.g. "google/gemma-4-31b:free"
+safe_model_name = model_name.replace("/", "_").replace(":", "_")
+
+results_path = f"data/results_{safe_model_name}.csv"
 questions_path = "data/test_questions.csv"
 
 questions_df = pd.read_csv(questions_path)
@@ -33,7 +38,7 @@ for index, row in questions_to_run.iterrows():
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
-                model="openai/gpt-oss-20b:free",
+                model=model_name,
                 messages=[{"role": "user", "content": row["question"]}]
             )
             answer = response.choices[0].message.content
