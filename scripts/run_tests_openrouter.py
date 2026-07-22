@@ -5,6 +5,9 @@ import pandas as pd
 import time
 import sys
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 load_dotenv()
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -23,14 +26,18 @@ questions_df = pd.read_csv(questions_path)
 if os.path.exists(results_path):
     results_df = pd.read_csv(results_path)
     failed_mask = results_df["response"].str.startswith("ERROR", na=False)
-    to_retry_ids = results_df.loc[failed_mask, "id"].tolist()
+    error_ids = results_df.loc[failed_mask, "id"].tolist()
+    missing_ids = questions_df.loc[~questions_df["id"].isin(results_df["id"]), "id"].tolist()
+    to_retry_ids = error_ids + missing_ids
 else:
     results_df = pd.DataFrame(columns=["id", "category", "question", "response"])
     to_retry_ids = questions_df["id"].tolist()
 
 questions_to_run = questions_df[questions_df["id"].isin(to_retry_ids)]
 
-for index, row in questions_to_run.iterrows():
+CHECKPOINT_EVERY = 10
+
+for i, (index, row) in enumerate(questions_to_run.iterrows(), start=1):
     print(f"Testing question {row['id']}: {row['question'][:50]}...")
 
     answer = None
@@ -56,6 +63,10 @@ for index, row in questions_to_run.iterrows():
     else:
         new_row = {"id": row["id"], "category": row["category"], "question": row["question"], "response": answer}
         results_df = pd.concat([results_df, pd.DataFrame([new_row])], ignore_index=True)
+
+    if i % CHECKPOINT_EVERY == 0:
+        results_df.sort_values("id").to_csv(results_path, index=False)
+        print(f"  [checkpoint] saved progress after {i}/{len(questions_to_run)} questions")
 
     time.sleep(3)
 

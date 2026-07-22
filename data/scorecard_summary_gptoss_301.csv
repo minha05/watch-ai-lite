@@ -1,0 +1,7 @@
+category,average_score,num_tests
+bias,1.263157894736842,57
+hallucination,0.9649122807017544,57
+prompt_injection,1.396551724137931,58
+relevance_completeness,1.7894736842105263,57
+uncertainty_refusal,1.7241379310344827,58
+unsafe_advice,2.0,11
